@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas · Plano do MVP</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080e18; --surface: #101b2a; --line: #293e51;
+      --ink: #eaf5fd; --muted: #abc0d2; --cyan: #9beaff; --green: #a1efd0;
+      font: 400 16px/1.55 'Segoe UI', system-ui, sans-serif;
+      color: var(--ink); background: var(--bg);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: var(--cyan); text-underline-offset: .22em; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    h1, h2, h3, p, dl, dd, ol, ul { margin: 0; }
+    main, .bar-inner, .footer-inner { width: min(1120px, calc(100% - 64px)); margin-inline: auto; }
+    .bar { border-bottom: 1px solid var(--line); }
+    .bar-inner, .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 24px; padding-block: 16px; }
+    .brand { color: var(--cyan); font-weight: 700; letter-spacing: .14em; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:hover, nav a:focus-visible { color: var(--cyan); text-decoration: underline; }
+    main { display: grid; gap: 48px; padding-block: 32px 48px; }
+    section { scroll-margin-top: 24px; }
+    .hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(240px, .65fr); gap: 32px; align-items: center; min-height: 288px; overflow: hidden; padding: 32px; border: 1px solid var(--line); border-radius: 20px; background: radial-gradient(ellipse at 81% 42%, #132d44, transparent 50%), var(--surface); }
+    .hero-copy, .progress { position: relative; z-index: 1; }
+    .eyebrow { color: var(--cyan); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+    h1 { font-size: clamp(2.35rem, 6vw, 4.5rem); line-height: 1.04; letter-spacing: -.055em; margin: 8px 0 16px; }
+    .intro { max-width: 52ch; color: var(--muted); }
+    .progress { justify-self: end; width: min(100%, 260px); align-self: end; padding: 16px; border: 1px solid #3d6074; border-radius: 12px; background: #0a1421f2; }
+    output { display: block; font-size: 1.375rem; font-weight: 700; line-height: 1.25; }
+    progress { display: block; margin-block: 12px 8px; width: 100%; height: 8px; border: 0; border-radius: 8px; overflow: hidden; background: #243c50; accent-color: var(--cyan); }
+    progress::-webkit-progress-bar { background: #243c50; }
+    progress::-webkit-progress-value { background: var(--cyan); }
+    .muted, dt + dd { color: var(--muted); }
+    .orbit { position: absolute; pointer-events: none; right: 8%; top: 48%; translate: 0 -50%; width: 312px; aspect-ratio: 1; border: 1px solid #6edaf34d; border-radius: 50%; display: grid; place-items: center; }
+    .orbit::before, .orbit::after { content: ''; position: absolute; border: 1px solid #6edaf363; border-radius: 50%; }
+    .orbit::before { inset: 20px; transform: rotate(-27deg) scaleY(.48); }
+    .orbit::after { inset: 48px; transform: rotate(38deg) scaleY(.64); }
+    .core { width: 108px; aspect-ratio: 1; border: 1px solid #a4f4ff; border-radius: 50%; background: repeating-linear-gradient(0deg, transparent 0 7px, #b2f4ff49 8px 9px), radial-gradient(circle at 38% 32%, #a0edff, #3b9cbd 30%, #1d506a 62%, #0d2437 78%); box-shadow: 0 0 40px #6de1ff70; }
+    .section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 24px; margin-bottom: 16px; }
+    h2 { font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.025em; line-height: 1.2; }
+    h3, dt { font-weight: 650; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    [hidden] { display: none !important; }
+    button { min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+    button:hover { border-color: var(--cyan); }
+    button[aria-pressed="true"] { background: #1a3448; border-color: #5595ad; color: var(--cyan); }
+    .roadmap { list-style: none; padding: 0; display: grid; gap: 8px; }
+    .step { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 4px 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .step p { grid-column: 1 / -1; color: var(--muted); }
+    .badge { align-self: center; font-size: .8rem; font-weight: 650; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); white-space: nowrap; }
+    [data-state="done"] .badge { color: var(--green); border-color: #366557; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .card { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    dd, .card > p { margin-top: 4px; }
+    .estimate { display: flex; flex-wrap: wrap; gap: 16px 32px; margin-bottom: 12px; }
+    .estimate strong { display: block; color: var(--cyan); font-size: 1.375rem; }
+    footer { border-top: 1px solid var(--line); }
+    .footer-inner { justify-content: flex-start; }
+    @media (max-width: 740px) {
+      main, .bar-inner, .footer-inner { width: calc(100% - 32px); }
+      main { gap: 32px; padding-block: 16px 32px; }
+      .hero { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
+      .progress { justify-self: start; }
+      .orbit { opacity: .35; right: -76px; }
+    }
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1fr; gap: 8px; }
+      .badge { grid-row: 1; justify-self: start; }
+    }
+    @media print {
+      :root { color-scheme: light; --bg: white; --surface: white; --line: #8b9aaa; --ink: #101b2a; --muted: #364459; --cyan: #185470; --green: #216448; }
+      main, .bar-inner, .footer-inner { width: 100%; }
+      main { padding-block: 16px; gap: 24px; }
+      .orbit, .filters, nav, #marcos-vazios { display: none; }
+      .hero, .progress { background: white; }
+      .hero { min-height: auto; }
+      .step[hidden] { display: grid !important; }
+      .card, .step, .hero { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="bar-inner">
+      <p class="brand">◈ ATLAS</p>
+      <nav aria-label="Seções do plano">
+        <a href="#marcos">Marcos</a><a href="#decisoes">Decisões</a><a href="#estimativa">Estimativa</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="titulo">
+      <div class="orbit" aria-hidden="true"><div class="core"></div></div>
+      <div class="hero-copy">
+        <p class="eyebrow">Uso pessoal · Windows</p>
+        <h1 id="titulo">Plano do MVP</h1>
+        <p class="intro">Uma interface própria para conversar com o Codex, acompanhar a resposta em tempo real e decidir sobre pedidos de aprovação na mesma conversa.</p>
+      </div>
+      <div class="progress">
+        <output id="contagem">7 de 7 marcos concluídos</output>
+        <progress id="progresso" value="7" max="7" aria-label="Marcos concluídos"></progress>
+        <p class="muted">MVP local validado no Windows.</p>
+      </div>
+    </section>
+
+    <section id="marcos" aria-labelledby="titulo-marcos">
+      <div class="section-head">
+        <h2 id="titulo-marcos">Marcos</h2>
+        <div class="filters" role="group" aria-label="Filtrar marcos" hidden>
+          <button type="button" data-filter="all" aria-pressed="true">Todos</button>
+          <button type="button" data-filter="open" aria-pressed="false">Em aberto</button>
+          <button type="button" data-filter="done" aria-pressed="false">Concluídos</button>
+        </div>
+      </div>
+      <ol class="roadmap">
+        <li class="step" data-state="done"><h3>Definir escopo e HTML base</h3><span class="badge">Concluído</span><p>Protótipo identificado, com navegação orbital, histórico e estados de aprovação.</p></li>
+        <li class="step" data-state="done"><h3>Verificar o ambiente local</h3><span class="badge">Concluído</span><p>Node.js 20 confirmado. O Atlas encontra e usa automaticamente a versão incluída no app oficial do Codex.</p></li>
+        <li class="step" data-state="done"><h3>Conectar ao Codex App Server</h3><span class="badge">Concluído</span><p>O Atlas iniciou o servidor no Windows e confirmou o login do ChatGPT e a listagem de conversas.</p></li>
+        <li class="step" data-state="done"><h3>Receber a primeira resposta real</h3><span class="badge">Concluído</span><p>GPT‑6.2 respondeu em tempo real usando o login do ChatGPT e a versão do app oficial.</p></li>
+        <li class="step" data-state="done"><h3>Carregar e retomar conversas</h3><span class="badge">Concluído</span><p>Após reiniciar a ponte, o Codex recuperou o contexto da mesma conversa e manteve sua pasta de trabalho.</p></li>
+        <li class="step" data-state="done"><h3>Ligar aprovações e histórico</h3><span class="badge">Concluído</span><p>Ações reais de teste confirmaram que a aprovação permite a execução e a recusa a impede. As decisões e os resultados foram recuperados após reiniciar.</p></li>
+        <li class="step" data-state="done"><h3>Validar a operação local</h3><span class="badge">Concluído</span><p>Inicialização e reinício confirmados. Reconexão, limite e recuperação após gravação interrompida foram testados com dados simulados.</p></li>
+      </ol>
+      <p class="card muted" id="marcos-vazios" role="status" hidden>Nenhum marco corresponde a este filtro.</p>
+    </section>
+
+    <section id="decisoes" aria-labelledby="titulo-decisoes">
+      <div class="section-head"><h2 id="titulo-decisoes">Decisões do projeto</h2></div>
+      <dl class="grid">
+        <div class="card"><dt>Interface</dt><dd>Reaproveitar a esfera, os projetos em órbita e o chat redimensionável do HTML original. Substituir as simulações por dados reais.</dd></div>
+        <div class="card"><dt>Integração</dt><dd>Usar a arquitetura do Codex WebUI como referência. Um serviço em Node.js inicia o Codex App Server e repassa os eventos ao navegador.</dd></div>
+        <div class="card"><dt>Conta</dt><dd>Usar o login do ChatGPT gerenciado pelo Codex, dentro do acesso e dos limites do plano.</dd></div>
+        <div class="card"><dt>Conversas</dt><dd>Usar o histórico acessível ao App Server e validar quais conversas existentes podem ser retomadas no Windows.</dd></div>
+        <div class="card"><dt>Aprovações</dt><dd>Mostrar o pedido no chat de origem e guardar a decisão e o resultado para consulta após reiniciar.</dd></div>
+        <div class="card"><dt>Execução</dt><dd>Rodar na máquina local e usar o projeto aberto como diretório de trabalho, seguindo a política de permissões do Codex.</dd></div>
+      </dl>
+    </section>
+
+    <section id="estimativa" aria-labelledby="titulo-estimativa">
+      <div class="section-head"><h2 id="titulo-estimativa">Estimativa e escopo</h2></div>
+      <div class="grid">
+        <div class="card">
+          <div class="estimate"><p><strong>1 a 2 dias úteis</strong>Primeira conversa real</p><p><strong>4 a 7 dias úteis</strong>MVP local completo</p></div>
+          <p class="muted">Estimativa feita antes da implementação. Os sete marcos já foram validados.</p>
+        </div>
+        <div class="card"><h3>Para depois do MVP</h3><p class="muted">Voz real, Artha Tasks, acesso remoto e suporte a outros provedores.</p></div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="footer-inner">
+      <a href="https://learn.chatgpt.com/docs/app-server">Codex App Server</a>
+      <a href="https://learn.chatgpt.com/docs/auth">Autenticação do Codex</a>
+      <a href="https://github.com/lezi-fun/codex-webui">Codex WebUI</a>
+    </div>
+  </footer>
+  <script>
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const completed = steps.filter(step => step.dataset.state === 'done').length;
+    const progress = document.querySelector('#progresso');
+    progress.max = steps.length;
+    progress.value = completed;
+    document.querySelector('#contagem').textContent = `${completed} de ${steps.length} marcos concluídos`;
+
+    const filters = document.querySelector('.filters');
+    const buttons = Array.from(filters.querySelectorAll('button'));
+    const empty = document.querySelector('#marcos-vazios');
+    filters.hidden = false;
+    filters.addEventListener('click', event => {
+      const selected = event.target.closest('button[data-filter]');
+      if (!selected) return;
+      const filter = selected.dataset.filter;
+      buttons.forEach(button => button.setAttribute('aria-pressed', String(button === selected)));
+      steps.forEach(step => {
+        const done = step.dataset.state === 'done';
+        step.hidden = filter !== 'all' && done !== (filter === 'done');
+      });
+      empty.hidden = steps.some(step => !step.hidden);
+    });
+  </script>
+</body>
+</html>

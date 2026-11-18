@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas · Codex</title>
+  <style>
+  :root { color-scheme: dark; background: #070d16; }
+  body { margin: 0; }
+  #atlas-orbita {
+    --atlas-bg: #090e19; --atlas-panel: #111c2c; --atlas-line: #30445a;
+    --atlas-text: #e9f5fd; --atlas-muted: #a0b6c9; --atlas-cyan: #92efff;
+    --atlas-compact-control: 32px;
+    color-scheme: dark; color: var(--atlas-text); background: var(--atlas-bg);
+    font: 400 14px/1.5 'Segoe UI', system-ui, sans-serif; border: 1px solid #243749;
+    border-radius: 20px; overflow: hidden;
+  }
+  #atlas-orbita *, #atlas-orbita *::before, #atlas-orbita *::after { box-sizing: border-box; }
+  #atlas-orbita [hidden] { display: none !important; }
+  #atlas-orbita button { font: inherit; color: inherit; }
+  #atlas-orbita button:focus-visible { outline: 2px solid var(--atlas-cyan); outline-offset: 4px; }
+  #atlas-orbita .atlas-bar {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center;
+    gap: 8px 16px; padding: 4px 16px; border-bottom: 1px solid #1e3042;
+  }
+  #atlas-orbita .atlas-brand { display: inline-flex; gap: 8px; align-items: center; margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .06em; }
+  #atlas-orbita .atlas-brand span { color: var(--atlas-cyan); }
+  #atlas-orbita #atlas-connection {
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+    color: var(--atlas-muted); font-size: 12px; line-height: 1.25;
+  }
+  #atlas-orbita #atlas-connection::before {
+    content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  }
+  #atlas-orbita #atlas-connection[data-state="online"]::before { background: var(--atlas-cyan); }
+  #atlas-orbita #atlas-connection[data-state="offline"]::before { background: #f4ae99; }
+  #atlas-orbita :is(.atlas-bar-nav, .atlas-chat-tools) {
+    display: flex; align-items: center; gap: 4px; width: max-content; max-width: 100%;
+    padding: 4px; border: 1px solid #243749; border-radius: 999px; background: #0d1827;
+  }
+  #atlas-orbita .atlas-chat-mode {
+    min-height: var(--atlas-compact-control); max-width: 100%; padding: 0 4px 0 8px;
+    border: 1px solid var(--atlas-line); border-radius: 6px;
+    color: var(--atlas-text); background: var(--atlas-bg); font: inherit;
+  }
+  #atlas-orbita .atlas-layout,
+  #atlas-orbita .atlas-bar-nav .atlas-header-button,
+  #atlas-orbita .atlas-chat-tools :is(.atlas-header-button, .atlas-dock-picker) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    min-height: var(--atlas-compact-control); min-width: 0; padding: 0 8px;
+    border: 1px solid transparent; border-radius: 999px; background: transparent;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  #atlas-orbita :is(.atlas-layout, .atlas-chat-tools .atlas-dock-picker) { padding-inline-end: 4px; }
+  #atlas-orbita .atlas-layout .atlas-chat-mode { min-height: calc(var(--atlas-compact-control) - 2px); padding: 0; border: 0; border-radius: 4px; background: transparent; }
+  #atlas-orbita .atlas-chat-mode option { background: var(--atlas-panel); }
+  #atlas-orbita :is(.atlas-bar-nav, .atlas-chat-tools) .atlas-header-button:not(:disabled):hover,
+  #atlas-orbita .atlas-chat-tools .atlas-dock-picker:is(:hover, :focus-visible),
+  #atlas-orbita .atlas-layout:is(:hover, :focus-within),
+  #atlas-orbita .atlas-bar-nav .atlas-chat-toggle[aria-expanded="true"],
+  #atlas-orbita .atlas-chat-tools .atlas-history-toggle[aria-expanded="true"] {
+    border-color: #376078; background: #183444; color: var(--atlas-cyan);
+  }
+  #atlas-orbita .atlas-bar :is(button, a, select):focus-visible { outline-offset: 2px; }
+  #atlas-orbita .atlas-bar-nav .atlas-fullscreen { flex: none; width: var(--atlas-compact-control); padding: 0; }
+  #atlas-orbita .atlas-plan {
+    display: inline-grid; place-items: center; min-width: var(--atlas-compact-control);
+    min-height: var(--atlas-compact-control); padding-inline: 8px; border-radius: 999px;
+    color: var(--atlas-muted); font-size: 12px; text-decoration: none;
+  }
+  #atlas-orbita .atlas-plan:hover { color: var(--atlas-cyan); background: #183444; }
+  #atlas-orbita .atlas-nav-icon {
+    position: relative; display: inline-grid; place-items: center; flex: none;
+    width: 16px; height: 16px; color: var(--atlas-cyan); font-size: 16px; line-height: 1;
+  }
+  #atlas-orbita .atlas-mode-icon { border: 1px solid currentColor; border-radius: 50%; }
+  #atlas-orbita .atlas-mode-icon::before { content: ''; width: 7px; height: 100%; border: 1px solid currentColor; border-block: 0; border-radius: 50%; }
+  #atlas-orbita .atlas-mode-icon::after { content: ''; position: absolute; inset-inline: 1px; top: 50%; border-top: 1px solid currentColor; }
+  #atlas-orbita .atlas-chat-icon::before { content: ''; width: 14px; height: 11px; border: 1px solid currentColor; border-radius: 4px; }
+  #atlas-orbita .atlas-chat-icon::after { content: ''; position: absolute; bottom: 1px; left: 4px; width: 4px; height: 4px; border-left: 1px solid currentColor; transform: skewY(-32deg); }
+  #atlas-orbita .atlas-projects-icon::before { content: ''; width: 14px; height: 10px; border: 1px solid currentColor; border-radius: 2px; transform: translateY(1px); }
+  #atlas-orbita .atlas-projects-icon::after { content: ''; position: absolute; top: 2px; left: 1px; width: 6px; height: 3px; border: 1px solid currentColor; border-bottom: 0; border-radius: 2px 2px 0 0; }
+  #atlas-orbita .atlas-history-icon::before {
+    content: ''; width: 12px; height: 12px; border: 1px solid currentColor; border-radius: 50%;
+  }
+  #atlas-orbita .atlas-history-icon::after {
+    content: ''; position: absolute; top: 4px; left: 7px; width: 4px; height: 5px;
+    border-left: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  }
+  #atlas-orbita .atlas-fullscreen-icon::before, #atlas-orbita .atlas-fullscreen-icon::after {
+    content: ''; position: absolute; width: 6px; height: 6px; border: 1.5px solid currentColor;
+  }
+  #atlas-orbita .atlas-fullscreen-icon::before { top: 1px; left: 1px; border-right: 0; border-bottom: 0; }
+  #atlas-orbita .atlas-fullscreen-icon::after { right: 1px; bottom: 1px; border-top: 0; border-left: 0; }
+  #atlas-orbita:fullscreen .atlas-fullscreen-icon::before { transform: rotate(180deg); }
+  #atlas-orbita:fullscreen .atlas-fullscreen-icon::after { transform: rotate(180deg); }
+  #atlas-orbita .atlas-stage {
+    min-height: 480px; position: relative; display: grid; align-items: center; isolation: isolate;
+    background: radial-gradient(ellipse at 50% 45%, #142e48 0%, #0d182a 42%, #090e19 78%);
+  }
+  #atlas-orbita .atlas-grid {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-image: radial-gradient(circle, #577791 1px, transparent 1px);
+    background-size: 24px 24px; opacity: .26;
+    mask-image: radial-gradient(ellipse at center, transparent 12%, black 58%, transparent 92%);
+  }
+  #atlas-orbita .atlas-system { --atlas-globe-size: clamp(120px, 24vw, 224px); width: 100%; height: 480px; margin: auto; position: relative; }
+  #atlas-orbita .atlas-ring { position: absolute; top: 46%; left: 50%; width: 75%; height: 52%; border: 1px solid #41688580; border-radius: 50%; transform: translate(-50%, -50%) rotate(-14deg); }
+  #atlas-orbita .ring-inner { width: 62%; height: 39%; border-color: #315772a8; }
+  #atlas-orbita .ring-cross { width: 68%; height: 46%; transform: translate(-50%, -50%) rotate(21deg); border-color: #41688556; }
+  #atlas-orbita .atlas-core { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; }
+  #atlas-orbita .atlas-globe { width: var(--atlas-globe-size); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 36% 30%, #347998 0%, #174b65 28%, #0b233a 57%, #060e20 76%); box-shadow: 0 0 48px #4acdfa42, inset 0 0 20px #50d7fa75; transition: box-shadow .3s ease; }
+  #atlas-orbita canvas { display: block; width: 100%; height: 100%; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-globe { cursor: grab; touch-action: pan-y; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-globe.is-dragging { cursor: grabbing; }
+  #atlas-orbita .atlas-thread-switch { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
+  #atlas-orbita .atlas-thread-label {
+    min-width: 0; width: clamp(104px, 28cqw, 208px); min-height: 44px; padding: 0 8px;
+    border: 1px solid transparent; border-radius: 8px; background: transparent; text-align: center;
+  }
+  #atlas-orbita .atlas-thread-label strong, #atlas-orbita .atlas-history-entry { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #atlas-orbita .atlas-thread-label strong { display: block; }
+  #atlas-orbita .atlas-thread-label span { display: block; color: var(--atlas-muted); font-size: 12px; }
+  #atlas-orbita .atlas-thread-label.is-switching { animation: atlas-thread-in .28s ease-out; }
+  @keyframes atlas-thread-in { from { opacity: .5; transform: translateX(var(--thread-shift, 0)); } to { opacity: 1; transform: translateX(0); } }
+  #atlas-orbita .atlas-presence { position: absolute; width: max-content; max-width: min(240px, 84cqw); text-align: center; top: calc(100% + 8px); color: var(--atlas-cyan); font-size: 12px; letter-spacing: .1em; }
+  #atlas-orbita #atlas-project-orbit {
+    position: absolute; inset: 16px 8px 72px; display: grid; column-gap: 8px;
+    grid-template-columns: minmax(0, 1fr) var(--atlas-globe-size) minmax(0, 1fr);
+    pointer-events: none;
+  }
+  #atlas-orbita .atlas-project-rail {
+    display: flex; flex-direction: column; align-items: center; justify-content: safe center;
+    min-height: 0; gap: 16px; padding: 8px; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; pointer-events: auto;
+  }
+  #atlas-orbita .atlas-project-rail:empty { pointer-events: none; }
+  #atlas-orbita .atlas-project-rail:last-child { grid-column: 3; }
+  #atlas-orbita .atlas-node { display: grid; flex: none; gap: 4px; justify-items: center; max-width: 100%; min-width: min(100%, 80px); min-height: 64px; padding: 4px; border: 0; border-radius: 8px; background: transparent; }
+  #atlas-orbita .atlas-node-name { max-width: 100%; line-height: 1.25; overflow-wrap: anywhere; }
+  #atlas-orbita .atlas-satellite { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid #437490; background: #12293c; border-radius: 50%; color: var(--atlas-cyan); font-size: 21px; box-shadow: 0 0 24px #4acdfa28; transition: transform .25s ease, background .25s ease; }
+  #atlas-orbita .atlas-node:is(:hover, :focus-visible) .atlas-satellite { transform: translateY(-4px); background: #20546b; }
+  #atlas-orbita .atlas-header-button { min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid var(--atlas-line); border-radius: 8px; background: var(--atlas-panel); }
+  #atlas-orbita:fullscreen { width: 100%; height: 100%; border: 0; border-radius: 0; display: flex; flex-direction: column; overflow: auto; }
+  #atlas-orbita:fullscreen .atlas-stage { flex: 1; }
+  #atlas-orbita:fullscreen .atlas-system { height: 100%; }
+  #atlas-orbita h2 { margin: 4px 0 0; color: var(--atlas-text); font-size: 22px; line-height: 1.15; }
+  #atlas-orbita p { margin: 0; }
+  #atlas-orbita .atlas-eyebrow { color: var(--atlas-muted); font-size: 12px; }
+  #atlas-orbita .atlas-close { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; background: transparent; border: 0; border-radius: 8px; font-size: 26px; }
+  #atlas-orbita #atlas-project-dialog {
+    width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px);
+    padding: 0; color: var(--atlas-text); background: var(--atlas-panel); border: 1px solid #4b7890;
+    border-radius: 16px; box-shadow: 0 16px 48px #030812ba;
+  }
+  #atlas-orbita #atlas-project-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+  #atlas-orbita #atlas-project-dialog::backdrop { background: #030812ba; }
+  #atlas-orbita .atlas-project-dialog-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 8px 16px 8px 24px; border-bottom: 1px solid var(--atlas-line);
+  }
+  #atlas-orbita #atlas-project-dialog-title { margin: 0; overflow-wrap: anywhere; }
+  #atlas-orbita #atlas-project-dialog-body { display: grid; gap: 16px; padding: 16px 24px 24px; overflow-y: auto; overscroll-behavior: contain; }
+  #atlas-orbita .atlas-project-list { display: grid; gap: 8px; min-width: 0; list-style: none; padding: 0; margin: 0; }
+  #atlas-orbita .atlas-project-row, #atlas-orbita .atlas-project-check {
+    width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--atlas-line);
+    border-radius: 8px; background: var(--atlas-bg); text-align: start; overflow-wrap: anywhere;
+  }
+  #atlas-orbita .atlas-project-row { display: grid; align-content: center; gap: 4px; }
+  #atlas-orbita .atlas-project-row:focus-visible { outline-offset: 2px; }
+  #atlas-orbita .atlas-project-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  #atlas-orbita .atlas-project-check:focus-within { border-color: var(--atlas-cyan); }
+  #atlas-orbita .atlas-project-check input { flex: none; margin: 0; accent-color: var(--atlas-cyan); }
+  #atlas-orbita .atlas-project-history-meta { color: var(--atlas-muted); font-size: 12px; }
+  #atlas-orbita .atlas-project-empty { color: var(--atlas-muted); }
+  #atlas-orbita .atlas-action { min-height: 44px; padding: 8px 12px; background: #185471; border: 1px solid #4b97b2; border-radius: 8px; }
+  #atlas-orbita .atlas-chat { padding: 12px 16px 16px; border-top: 1px solid var(--atlas-line); background: var(--atlas-panel); }
+  #atlas-orbita .atlas-chat-head {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "heading close" "tools tools";
+    flex: none; align-items: center; gap: 4px 8px; margin-bottom: 4px;
+  }
+  #atlas-orbita .atlas-chat-heading { grid-area: heading; min-width: 0; display: grid; }
+  #atlas-orbita .atlas-chat-heading:focus-visible { outline: 2px solid var(--atlas-cyan); outline-offset: 2px; border-radius: 4px; }
+  #atlas-orbita .atlas-chat-heading :is(h2, p) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #atlas-orbita .atlas-chat-heading h2 { margin: 0; font-size: 15px; line-height: 1.2; }
+  #atlas-orbita .atlas-chat-context { font-size: 11px; line-height: 1.15; }
+  #atlas-orbita .atlas-chat-tools { grid-area: tools; flex-wrap: wrap; padding-block: 0; }
+  #atlas-orbita .atlas-chat-close {
+    grid-area: close; width: var(--atlas-compact-control); height: var(--atlas-compact-control);
+    padding: 0; border-radius: 999px; font-size: 20px; line-height: 1;
+  }
+  #atlas-orbita .atlas-chat-close:hover { background: #92efff18; }
+  #atlas-orbita :is(.atlas-compose-actions, .atlas-approval-actions) button {
+    min-height: var(--atlas-compact-control); min-width: 0; padding: 0 8px;
+    border-radius: 6px; font-size: 12px; font-weight: 600;
+  }
+  #atlas-orbita .atlas-chat :is(button, select):focus-visible { outline-offset: 2px; }
+  #atlas-orbita #atlas-tabs { display: flex; flex: none; min-width: 0; gap: 4px; margin-bottom: 4px; }
+  #atlas-orbita #atlas-tabs:empty { display: none; }
+  #atlas-orbita .atlas-conversation-tab {
+    display: flex; flex: 0 1 auto; min-width: 0; max-width: min(184px, 100%); font-size: 12px;
+    border: 1px solid var(--atlas-line); border-radius: 999px; background: #0d1827;
+  }
+  #atlas-orbita .atlas-conversation-tab:has(.atlas-tab-select[aria-pressed="true"]) {
+    border-color: #69b1ca; background: #20546b; color: var(--atlas-cyan);
+  }
+  #atlas-orbita :is(.atlas-tab-select, .atlas-tab-close) {
+    min-height: calc(var(--atlas-compact-control) - 4px); padding: 0; border: 0; border-radius: 999px; background: transparent;
+  }
+  #atlas-orbita .atlas-tab-select {
+    flex: 1; min-width: 0; padding-inline: 8px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; text-align: start;
+  }
+  #atlas-orbita .atlas-tab-select[aria-pressed="true"] { font-weight: 650; }
+  #atlas-orbita .atlas-tab-close { flex: none; width: calc(var(--atlas-compact-control) - 4px); font-size: 17px; }
+  #atlas-orbita :is(.atlas-tab-select, .atlas-tab-close):not(:disabled):hover { background: #92efff18; }
+  #atlas-orbita .atlas-chat :is(.atlas-tab-select, .atlas-tab-close):focus-visible { outline-offset: -2px; }
+  #atlas-orbita .atlas-chat-body {
+    display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    min-height: 0; gap: 12px;
+  }
+  #atlas-orbita .atlas-chat-body:has(.atlas-history:not([hidden])) {
+    grid-template-columns: clamp(min(144px, 40%), 28%, 240px) minmax(0, 1fr);
+  }
+  #atlas-orbita .atlas-history {
+    display: flex; flex-direction: column; min-width: 0; min-height: 0;
+    gap: 4px; padding: 4px; border-inline-end: 1px solid var(--atlas-line);
+    overflow: auto; overflow-wrap: anywhere;
+  }
+  #atlas-orbita .atlas-history button {
+    flex: none; min-height: var(--atlas-compact-control); padding: 4px 8px;
+    text-align: start; border: 1px solid var(--atlas-line);
+    border-radius: 8px; background: var(--atlas-panel);
+  }
+  #atlas-orbita .atlas-history button[aria-current="true"] { background: #20546b; border-color: #69b1ca; }
+  #atlas-orbita .atlas-transcript { display: grid; flex: 1; align-content: start; gap: 12px; list-style: none; padding: 4px; margin: 0; min-height: 0; overflow: auto; }
+  #atlas-orbita :is(.atlas-history, .atlas-transcript):focus-visible { outline-offset: -2px; }
+  @media (forced-colors: none) {
+    #atlas-orbita :is(.atlas-history, .atlas-transcript) {
+      scrollbar-width: thin; scrollbar-gutter: stable; scrollbar-color: transparent transparent;
+    }
+    #atlas-orbita :is(.atlas-history, .atlas-transcript).is-scrolling { scrollbar-color: var(--atlas-muted) transparent; }
+  }
+  #atlas-orbita .atlas-transcript li { width: fit-content; max-width: min(84%, 480px); padding: 8px 12px; background: #1b2d40; border-radius: 12px; overflow-wrap: anywhere; white-space: pre-wrap; }
+  #atlas-orbita .atlas-transcript li:is([data-speaker="Você"], .user) { justify-self: end; background: #194663; }
+  #atlas-orbita .atlas-transcript li span { display: block; color: var(--atlas-muted); font-size: 12px; }
+  #atlas-orbita .atlas-compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+  #atlas-orbita .atlas-compose-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 4px; }
+  #atlas-orbita .atlas-input { min-height: 44px; min-width: 0; width: 100%; padding: 8px 12px; resize: vertical; border: 1px solid var(--atlas-line); border-radius: 8px; background: #090e19; color: var(--atlas-text); font: inherit; }
+  #atlas-orbita[data-chat-mode="list"] .atlas-thread-switch { display: none; }
+  #atlas-orbita[data-chat-mode="list"].atlas-chat-open .atlas-stage { display: none; }
+  #atlas-orbita[data-chat-mode="list"] .atlas-chat { flex: 1; }
+  #atlas-orbita .atlas-workspace {
+    position: relative; display: flex; flex-direction: column; flex: 1; min-width: 0;
+    --atlas-side: clamp(280px, 35%, 496px);
+    --atlas-left: var(--atlas-side); --atlas-right: var(--atlas-side); --atlas-bottom: 54%;
+  }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-workspace { min-height: 560px; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-stage { position: absolute; inset: 0; min-height: 0; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-system { --atlas-globe-size: clamp(72px, 25cqw, 224px); height: 100%; min-height: 0; }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="bottom"] .atlas-stage { bottom: var(--atlas-bottom); }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="left"] .atlas-stage { left: var(--atlas-left); }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="right"] .atlas-stage { right: var(--atlas-right); }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-stage { container-type: size; }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="bottom"] .atlas-core { top: 26%; }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="bottom"] .atlas-system { --atlas-globe-size: clamp(56px, 26cqh, 144px); }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="bottom"] .atlas-presence { top: calc(100% + 4px); }
+  #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="bottom"] .atlas-thread-switch { bottom: 4px; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-chat { position: absolute; z-index: 2; display: flex; flex-direction: column; min-width: 0; overflow: hidden; padding: 8px 12px 16px; border: 1px solid var(--atlas-line); }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-chat-body { flex: 1; overflow: hidden; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-compose { flex-shrink: 0; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-chat-head { cursor: grab; touch-action: none; user-select: none; }
+  #atlas-orbita[data-chat-mode="orb"] .atlas-workspace.is-moving .atlas-chat { cursor: grabbing; z-index: 4; }
+  #atlas-orbita .atlas-chat[data-position="floating"] { left: clamp(0px, var(--chat-x, 100%), calc(100% - min(var(--chat-width, 432px), 100%))); top: clamp(0px, var(--chat-y, 24px), calc(100% - min(var(--chat-height, 376px), 100%))); width: min(var(--chat-width, 432px), 100%); height: min(var(--chat-height, 376px), 100%); border-radius: 16px; box-shadow: 0 16px 48px #030812ba; }
+  #atlas-orbita .atlas-chat[data-position="bottom"], #atlas-orbita .atlas-dock-preview[data-position="bottom"] { inset: auto 0 0; height: var(--atlas-bottom); }
+  #atlas-orbita .atlas-chat[data-position="left"], #atlas-orbita .atlas-dock-preview[data-position="left"] { inset: 0 auto 0 0; width: var(--atlas-left); }
+  #atlas-orbita .atlas-chat[data-position="right"], #atlas-orbita .atlas-dock-preview[data-position="right"] { inset: 0 0 0 auto; width: var(--atlas-right); }
+  #atlas-orbita .atlas-dock-preview { position: absolute; z-index: 3; pointer-events: none; display: grid; place-items: center; background: #3bcfff38; box-shadow: inset 0 0 0 2px #77dcff, inset 0 0 40px #4bcfff38; }
+  #atlas-orbita .atlas-dock-preview span { padding: 8px 12px; border-radius: 8px; background: #102839; color: var(--atlas-cyan); }
+  #atlas-orbita .atlas-workspace[data-preview] .atlas-chat { opacity: .56; }
+  #atlas-orbita .atlas-resize { display: none; position: absolute; z-index: 1; padding: 0; border: 0; background: transparent; touch-action: none; }
+  #atlas-orbita .atlas-chat[data-position="floating"] .atlas-resize[data-corner],
+  #atlas-orbita .atlas-chat:is([data-position="left"], [data-position="right"], [data-position="bottom"]) .atlas-resize-docked { display: grid; place-items: center; }
+  #atlas-orbita .atlas-chat[data-position="floating"] .atlas-resize[data-corner] { width: 12px; height: 24px; cursor: nwse-resize; }
+  #atlas-orbita .atlas-chat[data-position="floating"] .atlas-resize:is([data-corner="ne"], [data-corner="sw"]) { cursor: nesw-resize; }
+  #atlas-orbita .atlas-resize[data-corner="nw"] { top: 0; left: 0; }
+  #atlas-orbita .atlas-resize[data-corner="ne"] { top: 0; right: 0; }
+  #atlas-orbita .atlas-resize[data-corner="sw"] { bottom: 0; left: 0; }
+  #atlas-orbita .atlas-resize[data-corner="se"] { bottom: 0; right: 0; }
+  #atlas-orbita .atlas-chat[data-position="left"] .atlas-resize-docked,
+  #atlas-orbita .atlas-chat[data-position="right"] .atlas-resize-docked { inset: 0 0 0 auto; width: 12px; height: 100%; cursor: ew-resize; }
+  #atlas-orbita .atlas-chat[data-position="right"] .atlas-resize-docked { inset: 0 auto 0 0; }
+  #atlas-orbita .atlas-chat[data-position="bottom"] .atlas-resize-docked { inset: 0 0 auto; width: 100%; height: 12px; cursor: ns-resize; }
+  #atlas-orbita .atlas-chat[data-position="bottom"] { padding-top: 16px; }
+  #atlas-orbita .atlas-resize::after { content: attr(data-symbol); display: none; color: var(--atlas-cyan); background: #102839; border-radius: 4px; padding: 0 2px; font: 600 13px/16px 'Segoe UI', system-ui, sans-serif; pointer-events: none; }
+  #atlas-orbita .atlas-resize[data-corner]::after { padding: 0; font-size: 12px; }
+  #atlas-orbita .atlas-resize:is(:hover, :focus-visible, :active)::after { display: block; }
+  #atlas-orbita .atlas-chat .atlas-resize:focus-visible { outline: none; }
+  #atlas-orbita .atlas-resize:focus-visible::after { outline: 2px solid var(--atlas-cyan); outline-offset: -1px; }
+  #atlas-orbita[data-chat-mode="list"] .atlas-dock-picker { display: none; }
+
+  #atlas-orbita {
+    max-width: 1312px;
+    min-height: calc(100dvh - 48px);
+    margin: 24px auto;
+    display: flex;
+    flex-direction: column;
+  }
+  #atlas-orbita:fullscreen { max-width: none; margin: 0; }
+  #atlas-orbita :is(a, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--atlas-cyan); outline-offset: 2px; }
+  #atlas-orbita :is(button, select) { cursor: pointer; }
+  #atlas-orbita button:disabled { opacity: .5; cursor: default; }
+  #atlas-orbita button:not(:disabled):hover { border-color: #69b1ca; }
+  #atlas-orbita .atlas-chat { container-type: inline-size; }
+  #atlas-orbita .atlas-transcript-wrap { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 8px; container-type: inline-size; }
+  @container (max-width: 360px) {
+    #atlas-orbita .atlas-chat-body { gap: 8px; }
+  }
+  #atlas-orbita[data-chat-mode="list"] .atlas-chat-body {
+    min-height: 360px;
+    max-height: max(360px, calc(100dvh - 220px));
+    flex: 1;
+  }
+  #atlas-orbita[data-chat-mode="list"] .atlas-chat { display: flex; flex-direction: column; }
+  #atlas-orbita .atlas-input { max-height: 120px; }
+  #atlas-orbita #atlas-usage { color: var(--atlas-muted); font-size: 12px; }
+  #atlas-orbita #atlas-usage:empty { display: none; }
+  #atlas-orbita :is(#atlas-alert, .atlas-tab-warning):empty {
+    position: absolute; width: 1px; height: 1px; padding: 0; border: 0; clip-path: inset(50%);
+  }
+  #atlas-orbita :is(#atlas-alert, .atlas-tab-warning) {
+    max-height: 5em;
+    overflow: auto;
+    overflow-wrap: anywhere;
+    padding: 4px 8px;
+    border-left: 2px solid #f0ab83;
+    background: #3b292d;
+    color: #ffdcc7;
+  }
+  #atlas-orbita .atlas-tab-warning { flex-shrink: 0; }
+  #atlas-orbita #atlas-tab-warning:not(:empty) { margin-bottom: 12px; }
+  #atlas-orbita #atlas-project-tab-warning:not(:empty) { margin: 8px 24px 0; }
+  #atlas-orbita .atlas-transcript .atlas-status {
+    background: transparent;
+    color: var(--atlas-muted);
+    max-width: 100%;
+  }
+  #atlas-orbita .atlas-transcript .atlas-approval {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    border: 1px solid #856747;
+    border-left: 3px solid #edba90;
+    background: #202737;
+    white-space: normal;
+  }
+  #atlas-orbita .atlas-approval :is(h3, h4, p) { margin: 0 0 8px; }
+  #atlas-orbita .atlas-approval summary { cursor: pointer; }
+  #atlas-orbita .atlas-approval pre {
+    max-width: 100%;
+    max-height: 160px;
+    margin: 8px 0;
+    overflow: auto;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--atlas-bg);
+    font: 13px/1.5 ui-monospace, Consolas, monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #atlas-orbita .atlas-approval-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  #atlas-orbita .atlas-approval-actions button {
+    border: 1px solid var(--atlas-line);
+    background: var(--atlas-panel);
+  }
+  #atlas-orbita .atlas-approval-actions button:first-child { border-color: #4b97b2; background: #185471; }
+  #atlas-orbita[data-state="running"] .atlas-globe {
+    box-shadow: 0 0 72px #58dfff85, inset 0 0 24px #90eaffb5;
+    animation: atlas-working 2s ease-in-out infinite alternate;
+  }
+  #atlas-orbita:is([data-state="approval"], [data-state="limited"]) .atlas-globe {
+    box-shadow: 0 0 56px #e5bc626e, inset 0 0 24px #efd1959c;
+  }
+  #atlas-orbita:is([data-state="approval"], [data-state="limited"]) .atlas-presence { color: #f8db9d; }
+  #atlas-orbita:is([data-state="offline"], [data-state="error"]) .atlas-globe { filter: saturate(.5); }
+  #atlas-orbita:is([data-state="offline"], [data-state="error"]) .atlas-presence { color: #f4ae99; }
+  @keyframes atlas-working { to { box-shadow: 0 0 48px #4acdfa42, inset 0 0 20px #50d7fa75; } }
+  @container (min-width: 352px) {
+    #atlas-orbita .atlas-chat-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "heading tools close"; }
+  }
+  @container (min-width: 216px) {
+    #atlas-orbita[data-chat-mode="list"] .atlas-chat-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "heading tools close"; }
+  }
+  @container (max-width: 416px) {
+    #atlas-orbita .atlas-chat-tools { gap: 0; }
+    #atlas-orbita .atlas-chat-tools :is(.atlas-header-button, .atlas-dock-picker) { padding-inline: 4px; }
+    #atlas-orbita .atlas-chat-tools .atlas-nav-icon { display: none; }
+  }
+  @container (max-width: 216px) {
+    #atlas-orbita .atlas-compose { grid-template-columns: minmax(0, 1fr); }
+  }
+  @container (max-width: 288px) {
+    #atlas-orbita .atlas-compose:has(#atlas-stop:not([hidden])) { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 1376px) {
+    #atlas-orbita { margin-inline: 24px; }
+  }
+  @media (max-width: 820px) {
+    #atlas-orbita { margin: 16px; min-height: calc(100dvh - 32px); }
+    #atlas-orbita .atlas-bar { gap: 8px; }
+  }
+  @media (max-width: 680px) {
+    #atlas-orbita .atlas-bar { grid-template-columns: auto minmax(0, 1fr) auto; padding-block: 8px; }
+    #atlas-orbita .atlas-bar-nav { grid-column: 1 / -1; justify-self: center; }
+  }
+  @media (pointer: coarse), (max-width: 620px) {
+    #atlas-orbita { --atlas-compact-control: 36px; }
+  }
+  @media (max-width: 620px) {
+    #atlas-orbita { margin: 8px; min-height: calc(100dvh - 16px); }
+    #atlas-orbita .atlas-bar { padding-inline: 12px; }
+    #atlas-orbita .atlas-workspace { --atlas-side: min(84%, 320px); --atlas-bottom: 62%; }
+    #atlas-orbita[data-chat-mode="orb"] .atlas-workspace { min-height: 640px; }
+    #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="left"] .atlas-stage { left: 0; }
+    #atlas-orbita[data-chat-mode="orb"].atlas-chat-open [data-dock="right"] .atlas-stage { right: 0; }
+    #atlas-orbita .atlas-project-rail { gap: 8px; padding-inline: 4px; }
+    #atlas-orbita .atlas-project-dialog-head { padding-inline: 16px 8px; }
+    #atlas-orbita #atlas-project-dialog-body { padding-inline: 16px; }
+    #atlas-orbita #atlas-project-tab-warning:not(:empty) { margin-inline: 16px; }
+    #atlas-orbita .atlas-chat { padding: 8px 12px 12px; }
+  }
+  @media (max-width: 420px) {
+    #atlas-orbita .atlas-bar-nav { gap: 0; }
+    #atlas-orbita .atlas-bar-nav :is(.atlas-layout, .atlas-header-button) { padding-inline: 4px; }
+    #atlas-orbita .atlas-bar-nav .atlas-nav-icon:not(.atlas-fullscreen-icon) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #atlas-orbita *, #atlas-orbita *::before, #atlas-orbita *::after { transition: none !important; animation: none !important; }
+  }
+  </style>
+  <script defer src="/atlas.js"></script>
+</head>
+<body>
+  <main id="atlas-orbita" data-state="pending" data-chat-mode="orb">
+    <header class="atlas-bar">
+      <h1 class="atlas-brand"><span aria-hidden="true">◈</span> Atlas</h1>
+      <span id="atlas-connection" role="status">Conectando ao Codex…</span>
+      <a href="/plano" class="atlas-plan" aria-label="Plano do MVP" title="Plano do MVP">Plano</a>
+      <nav class="atlas-bar-nav" aria-label="Controles do Atlas">
+        <label class="atlas-layout">
+          <span class="atlas-nav-icon atlas-mode-icon" aria-hidden="true"></span>
+          <select class="atlas-chat-mode" aria-label="Visual do chat">
+            <option value="orb">Esfera</option>
+            <option value="list">Lista lateral</option>
+          </select>
+        </label>
+        <button type="button" class="atlas-header-button atlas-chat-toggle" aria-label="Abrir chat" title="Abrir chat" aria-expanded="false" aria-controls="atlas-chat">
+          <span class="atlas-nav-icon atlas-chat-icon" aria-hidden="true"></span>Chat
+        </button>
+        <button id="atlas-open-projects" type="button" class="atlas-header-button" aria-haspopup="dialog" aria-controls="atlas-project-dialog">
+          <span class="atlas-nav-icon atlas-projects-icon" aria-hidden="true"></span>Projetos
+        </button>
+        <button id="atlas-open-settings" type="button" class="atlas-header-button" aria-haspopup="dialog" aria-controls="atlas-project-dialog">
+          <span class="atlas-nav-icon" aria-hidden="true">⚙&#xfe0e;</span>Configurações
+        </button>
+        <button type="button" class="atlas-header-button atlas-fullscreen" aria-label="Tela cheia" title="Tela cheia" hidden>
+          <span class="atlas-nav-icon atlas-fullscreen-icon" aria-hidden="true"></span>
+        </button>
+      </nav>
+    </header>
+
+    <div class="atlas-workspace" data-dock="floating">
+      <section class="atlas-stage" aria-label="Projetos em órbita">
+        <div class="atlas-grid" aria-hidden="true"></div>
+        <div class="atlas-system">
+          <div class="atlas-ring ring-outer" aria-hidden="true"></div>
+          <div class="atlas-ring ring-inner" aria-hidden="true"></div>
+          <div class="atlas-ring ring-cross" aria-hidden="true"></div>
+          <div class="atlas-core">
+            <div class="atlas-globe" title="Role ou arraste para alternar conversas" aria-hidden="true"><canvas width="420" height="420"></canvas></div>
+            <span class="atlas-presence" role="status">Conectando…</span>
+          </div>
+
+          <div id="atlas-project-orbit">
+            <div class="atlas-project-rail"></div>
+            <div class="atlas-project-rail"></div>
+          </div>
+
+          <div class="atlas-thread-switch" role="group" aria-label="Alternar conversas">
+            <button type="button" class="atlas-header-button atlas-prev" aria-label="Conversa anterior" disabled>←</button>
+            <button type="button" id="atlas-open-orbit-thread" class="atlas-thread-label" aria-controls="atlas-chat" aria-live="polite" disabled><strong>Conversas do Codex</strong><span></span></button>
+            <button type="button" class="atlas-header-button atlas-next" aria-label="Próxima conversa" disabled>→</button>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="atlas-chat" class="atlas-chat" aria-labelledby="atlas-chat-title" hidden>
+        <header class="atlas-chat-head">
+          <div class="atlas-chat-heading">
+            <p class="atlas-eyebrow atlas-chat-context">Codex</p>
+            <h2 id="atlas-chat-title" class="atlas-chat-title">Conversa</h2>
+          </div>
+          <div class="atlas-chat-tools" role="group" aria-label="Controles da conversa">
+            <select class="atlas-chat-mode atlas-dock-picker" aria-label="Posição do chat">
+              <option value="floating">Flutuante</option>
+              <option value="bottom">Embaixo</option>
+              <option value="left">À esquerda</option>
+              <option value="right">À direita</option>
+            </select>
+            <button id="atlas-new" type="button" class="atlas-header-button">
+              <span class="atlas-nav-icon" aria-hidden="true">+</span>Nova conversa
+            </button>
+            <button type="button" class="atlas-header-button atlas-history-toggle" aria-controls="atlas-history" aria-expanded="false">
+              <span class="atlas-nav-icon atlas-history-icon" aria-hidden="true"></span>Histórico
+            </button>
+          </div>
+          <button type="button" class="atlas-close atlas-chat-close" aria-label="Fechar chat" title="Fechar chat">×</button>
+        </header>
+
+        <div id="atlas-tabs" role="group" aria-label="Abas de conversa"></div>
+        <p id="atlas-tab-warning" class="atlas-tab-warning" role="alert"></p>
+        <div class="atlas-chat-body">
+          <nav id="atlas-history" class="atlas-history" aria-label="Histórico de conversas" tabindex="0" hidden></nav>
+          <div class="atlas-transcript-wrap">
+            <ol class="atlas-transcript" aria-label="Mensagens da conversa" role="log" tabindex="0"></ol>
+            <p id="atlas-alert" role="status" aria-live="polite"></p>
+            <p id="atlas-usage"></p>
+            <form class="atlas-compose">
+              <textarea class="atlas-input" aria-label="Mensagem" placeholder="Escreva uma mensagem" rows="1" required></textarea>
+              <div class="atlas-compose-actions">
+                <button type="submit" class="atlas-action" disabled>Enviar</button>
+                <button id="atlas-stop" type="button" class="atlas-header-button" hidden>Interromper</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <button type="button" class="atlas-resize" data-corner="nw" data-symbol="↖" aria-label="Redimensionar o chat pelo canto superior esquerdo com as setas do teclado"></button>
+        <button type="button" class="atlas-resize" data-corner="ne" data-symbol="↗" aria-label="Redimensionar o chat pelo canto superior direito com as setas do teclado"></button>
+        <button type="button" class="atlas-resize" data-corner="sw" data-symbol="↙" aria-label="Redimensionar o chat pelo canto inferior esquerdo com as setas do teclado"></button>
+        <button type="button" class="atlas-resize" data-corner="se" data-symbol="↘" aria-label="Redimensionar o chat pelo canto inferior direito com as setas do teclado"></button>
+        <button type="button" class="atlas-resize atlas-resize-docked"></button>
+      </section>
+
+      <div class="atlas-dock-preview" aria-hidden="true" hidden><span></span></div>
+    </div>
+
+    <dialog id="atlas-project-dialog" aria-labelledby="atlas-project-dialog-title">
+      <header class="atlas-project-dialog-head">
+        <h2 id="atlas-project-dialog-title" tabindex="-1">Projetos</h2>
+        <form method="dialog">
+          <button type="submit" class="atlas-close" aria-label="Fechar">×</button>
+        </form>
+      </header>
+      <p id="atlas-project-tab-warning" class="atlas-tab-warning" role="alert"></p>
+      <div id="atlas-project-dialog-body"></div>
+    </dialog>
+  </main>
+<script>
+  (() => {
+    const root = document.getElementById('atlas-orbita');
+    const fullscreen = root.querySelector('.atlas-fullscreen');
+    const canvas = root.querySelector('canvas');
+    const context = canvas.getContext('2d');
+    const globe = root.querySelector('.atlas-globe');
+    const mode = root.querySelector('.atlas-chat-mode');
+    const chat = root.querySelector('.atlas-chat');
+    const workspace = root.querySelector('.atlas-workspace');
+    const chatHeader = root.querySelector('.atlas-chat-head');
+    const chatHeading = chatHeader.querySelector('.atlas-chat-heading');
+    const dockPicker = root.querySelector('.atlas-dock-picker');
+    const dockPreview = root.querySelector('.atlas-dock-preview');
+    const dockLabel = dockPreview.querySelector('span');
+    const resizeGrips = chat.querySelectorAll('.atlas-resize');
+    const dockedGrip = chat.querySelector('.atlas-resize-docked');
+    const chatToggle = root.querySelector('.atlas-chat-toggle');
+    const chatClose = root.querySelector('.atlas-chat-close');
+    const history = root.querySelector('.atlas-history');
+    const historyToggle = root.querySelector('.atlas-history-toggle');
+    const composer = root.querySelector('.atlas-compose');
+    const input = root.querySelector('.atlas-input');
+    const threadLabel = root.querySelector('.atlas-thread-label');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const narrowViewport = window.matchMedia('(max-width: 620px)');
+    let showHistory = false;
+    let gesture = null;
+    const wheelMotion = { travel: 0, time: 0 };
+    let dockPosition = 'floating';
+    let windowOperation = null;
+    let snapTarget = null;
+    const floatingSize = {width: 432, height: 376};
+    const snapLabels = {bottom: 'Encaixar embaixo', left: 'Encaixar à esquerda', right: 'Encaixar à direita'};
+    const arrowSteps = {ArrowLeft: [-16, 0], ArrowRight: [16, 0], ArrowUp: [0, -16], ArrowDown: [0, 16]};
+    let orbRotation = 0;
+    let settledRotation = 0;
+    let rotationFrame = 0;
+
+    function drawOrb() {
+      if (!context) return;
+      const center = canvas.width / 2;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      for (let band = 1; band < 29; band += 1) {
+        const latitude = Math.PI * band / 29;
+        const z = Math.cos(latitude);
+        const radius = Math.sin(latitude);
+        for (let point = 0; point < 84; point += 1) {
+          const longitude = point * Math.PI / 42;
+          const angle = longitude + orbRotation;
+          const x = radius * Math.cos(angle);
+          const y = radius * Math.sin(angle);
+          const depth = .92 * y + .39 * z;
+          if (depth < -.12) continue;
+          const texture = Math.sin(3 * longitude + latitude * 3) + .5 * Math.cos(5 * longitude - latitude * 6);
+          const scale = 188;
+          const light = Math.min(1, Math.max(.12, .28 + .45 * depth + .22 * texture));
+          context.fillStyle = `rgba(110, 232, 255, ${light})`;
+          context.beginPath();
+          context.arc(center + x * scale, center + (.39 * y - .92 * z) * scale, 1 + depth * .9, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+    }
+
+    function settleOrb(target) {
+      cancelAnimationFrame(rotationFrame);
+      settledRotation = target;
+      if (reducedMotion.matches) {
+        orbRotation = target;
+        drawOrb();
+        return;
+      }
+      const from = orbRotation;
+      const start = performance.now();
+      function rotate(now) {
+        const progress = Math.min(1, (now - start) / 240);
+        orbRotation = from + (target - from) * (1 - (1 - progress) ** 3);
+        drawOrb();
+        if (progress < 1) rotationFrame = requestAnimationFrame(rotate);
+      }
+      rotationFrame = requestAnimationFrame(rotate);
+    }
+
+    function renderChatMode() {
+      const listMode = mode.value === 'list';
+      root.dataset.chatMode = mode.value;
+      applyDock();
+      history.hidden = !listMode && !showHistory;
+      historyToggle.hidden = listMode;
+      historyToggle.setAttribute('aria-expanded', String(showHistory));
+    }
+
+    function applyDock() {
+      workspace.dataset.dock = dockPosition;
+      dockPicker.value = dockPosition;
+      if (mode.value === 'orb') chat.dataset.position = dockPosition;
+      else delete chat.dataset.position;
+      if (mode.value === 'orb' && dockPosition === 'floating') {
+        chatHeading.tabIndex = 0;
+        chatHeading.setAttribute('aria-label', 'Mover chat com as setas do teclado');
+      } else {
+        chatHeading.removeAttribute('tabindex');
+        chatHeading.removeAttribute('aria-label');
+      }
+      if (dockPosition !== 'floating') {
+        const isBottom = dockPosition === 'bottom';
+        dockedGrip.dataset.symbol = isBottom ? '↕' : '↔';
+        dockedGrip.setAttribute('aria-label', isBottom
+          ? 'Ajustar altura do chat com as setas para cima e para baixo'
+          : 'Ajustar largura do chat com as setas esquerda e direita');
+      }
+    }
+
+    function previewDock(target) {
+      snapTarget = target;
+      dockPreview.hidden = !target;
+      if (target) {
+        dockPreview.dataset.position = target;
+        dockLabel.textContent = snapLabels[target];
+        workspace.dataset.preview = target;
+      } else {
+        delete workspace.dataset.preview;
+      }
+    }
+
+    function positionChat(x, y) {
+      chat.style.setProperty('--chat-x', x + 'px');
+      chat.style.setProperty('--chat-y', y + 'px');
+    }
+
+    function getChatBounds(panel) {
+      const area = workspace.getBoundingClientRect();
+      return {x: panel.left - area.left, y: panel.top - area.top, width: panel.width, height: panel.height};
+    }
+
+    function resizeFloatingAxis(start, size, delta, limit, minimum, movesStart) {
+      const min = Math.min(limit, minimum);
+      const anchor = movesStart
+        ? Math.min(limit, Math.max(min, start + size))
+        : Math.min(limit - min, Math.max(0, start));
+      const max = movesStart ? anchor : limit - anchor;
+      const next = Math.min(max, Math.max(min, size + (movesStart ? -delta : delta)));
+      return {start: movesStart ? anchor - next : anchor, size: next};
+    }
+
+    function resizeChat(position, corner, bounds, dx, dy) {
+      const area = workspace.getBoundingClientRect();
+      const {x, y, width, height} = bounds;
+      if (position === 'floating') {
+        const horizontal = resizeFloatingAxis(x, width, dx, area.width, 280, corner.endsWith('w'));
+        const vertical = resizeFloatingAxis(y, height, dy, area.height, 272, corner.startsWith('n'));
+        floatingSize.width = horizontal.size;
+        floatingSize.height = vertical.size;
+        chat.style.setProperty('--chat-width', floatingSize.width + 'px');
+        chat.style.setProperty('--chat-height', floatingSize.height + 'px');
+        positionChat(horizontal.start, vertical.start);
+        return;
+      }
+      const isBottom = position === 'bottom';
+      const dimension = isBottom ? area.height : area.width;
+      if (dimension <= 0) return;
+      const next = isBottom ? height - dy : width + (position === 'left' ? dx : -dx);
+      const minimum = isBottom ? Math.min(240, dimension * .45) : Math.min(280, dimension * .8);
+      const maximum = isBottom ? dimension * .72
+        : narrowViewport.matches ? dimension * .88
+        : Math.min(dimension * .65, Math.max(280, dimension - 240));
+      const size = Math.min(maximum, Math.max(minimum, next));
+      workspace.style.setProperty('--atlas-' + position, (size / dimension * 100) + '%');
+    }
+
+    function startWindowOperation(event, type) {
+      if (mode.value !== 'orb' || event.button !== 0 || windowOperation) return;
+      if (type === 'move' && event.target.closest('button, select, option')) return;
+      const panel = chat.getBoundingClientRect();
+      windowOperation = {
+        pointer: event.pointerId, type, position: dockPosition, x: event.clientX, y: event.clientY,
+        offsetX: event.clientX - panel.left, offsetY: event.clientY - panel.top,
+        corner: event.currentTarget.dataset.corner, bounds: getChatBounds(panel), moved: false,
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function moveWindow(event) {
+      const operation = windowOperation;
+      if (operation?.pointer !== event.pointerId) return;
+      const dx = event.clientX - operation.x;
+      const dy = event.clientY - operation.y;
+      if (operation.type === 'resize') {
+        if (mode.value === 'orb' && operation.position === dockPosition) {
+          resizeChat(operation.position, operation.corner, operation.bounds, dx, dy);
+        }
+        return;
+      }
+      if (!operation.moved && Math.hypot(dx, dy) < 5) return;
+      operation.moved = true;
+      if (dockPosition !== 'floating') {
+        dockPosition = 'floating';
+        applyDock();
+      }
+      workspace.classList.add('is-moving');
+      const area = workspace.getBoundingClientRect();
+      const x = event.clientX - area.left;
+      const y = event.clientY - area.top;
+      positionChat(x - Math.min(operation.offsetX, floatingSize.width - 32), y - Math.min(operation.offsetY, 40));
+      const upperCorner = y <= 72;
+      const target = y >= area.height - 52 ? 'bottom'
+        : upperCorner && x <= Math.min(120, area.width / 3) ? 'left'
+        : upperCorner && x >= area.width - Math.min(120, area.width / 3) ? 'right'
+        : null;
+      previewDock(target);
+    }
+
+    function finishWindowOperation(event) {
+      const operation = windowOperation;
+      if (operation?.pointer !== event.pointerId) return;
+      windowOperation = null;
+      if (operation.type === 'move' && operation.moved) {
+        if (event.type !== 'pointerup') dockPosition = operation.position;
+        else if (snapTarget) dockPosition = snapTarget;
+        applyDock();
+      }
+      previewDock(null);
+      workspace.classList.remove('is-moving');
+    }
+
+    dockPicker.addEventListener('change', () => {
+      dockPosition = dockPicker.value;
+      applyDock();
+    });
+    chatHeader.addEventListener('pointerdown', event => startWindowOperation(event, 'move'));
+    resizeGrips.forEach(grip => {
+      grip.addEventListener('pointerdown', event => startWindowOperation(event, 'resize'));
+      grip.addEventListener('keydown', event => {
+        const direction = arrowSteps[event.key];
+        if (!direction) return;
+        if (dockPosition === 'bottom' && direction[1] === 0) return;
+        if ((dockPosition === 'left' || dockPosition === 'right') && direction[0] === 0) return;
+        event.preventDefault();
+        const bounds = getChatBounds(chat.getBoundingClientRect());
+        resizeChat(dockPosition, grip.dataset.corner, bounds, ...direction);
+      });
+    });
+    [chatHeader, ...resizeGrips].forEach(control => {
+      control.addEventListener('pointermove', moveWindow);
+      control.addEventListener('pointerup', finishWindowOperation);
+      control.addEventListener('pointercancel', finishWindowOperation);
+      control.addEventListener('lostpointercapture', finishWindowOperation);
+    });
+
+    function setChatOpen(open) {
+      const opened = open && chat.hidden;
+      chat.hidden = !open;
+      root.classList.toggle('atlas-chat-open', open);
+      const label = open ? 'Fechar chat' : 'Abrir chat';
+      chatToggle.setAttribute('aria-expanded', String(open));
+      chatToggle.setAttribute('aria-label', label);
+      chatToggle.title = label;
+      if (opened) root.dispatchEvent(new CustomEvent('atlas-chat-opened'));
+      if (open) (input.disabled ? chatClose : input).focus();
+      else chatToggle.focus();
+    }
+
+    mode.addEventListener('change', () => {
+      renderChatMode();
+      if (chat.hidden) setChatOpen(true);
+    });
+    chatToggle.addEventListener('click', () => setChatOpen(chat.hidden));
+    chatClose.addEventListener('click', () => setChatOpen(false));
+    root.addEventListener('atlas-open-chat', () => setChatOpen(true));
+    chat.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !event.defaultPrevented) setChatOpen(false);
+    });
+    historyToggle.addEventListener('click', () => {
+      showHistory = !showHistory;
+      renderChatMode();
+    });
+    chatHeading.addEventListener('keydown', event => {
+      const direction = arrowSteps[event.key];
+      if (!direction || dockPosition !== 'floating') return;
+      event.preventDefault();
+      const panel = chat.getBoundingClientRect();
+      const area = workspace.getBoundingClientRect();
+      positionChat(panel.left - area.left + direction[0], panel.top - area.top + direction[1]);
+    });
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || event.isComposing || !(event.ctrlKey || event.metaKey)) return;
+      event.preventDefault();
+      const submit = composer.querySelector('[type="submit"]');
+      if (!submit.disabled) composer.requestSubmit(submit);
+    });
+    window.addEventListener('atlas-rotate', event => {
+      const { direction, count = 1 } = event.detail ?? {};
+      if (direction !== 1 && direction !== -1) return;
+      threadLabel.classList.remove('is-switching');
+      void threadLabel.offsetWidth;
+      threadLabel.style.setProperty('--thread-shift', direction * 16 + 'px');
+      threadLabel.classList.add('is-switching');
+      if (!gesture) settleOrb(settledRotation + direction * Math.min(count, 3) * Math.PI / 2);
+    });
+    function spin(motion, distance, time, threshold) {
+      if (!distance) return;
+      const elapsed = time - motion.time;
+      const speed = Math.abs(distance) / Math.max(14, elapsed > 180 ? 32 : elapsed);
+      const gain = 1 + Math.min(2, Math.max(0, (speed - 1.5) / 4));
+      if (elapsed > 180 || motion.travel * distance < 0) motion.travel = 0;
+      motion.time = time;
+      motion.travel += distance * gain;
+      const count = Math.trunc(Math.abs(motion.travel) / threshold);
+      if (!count) return;
+      const direction = Math.sign(motion.travel);
+      motion.travel %= threshold;
+      globe.dispatchEvent(new CustomEvent('atlas-step', { bubbles: true, detail: { direction, count } }));
+    }
+    globe.addEventListener('wheel', event => {
+      if (mode.value !== 'orb' || event.ctrlKey) return;
+      const scale = event.deltaMode === 1 ? 24 : event.deltaMode === 2 ? 140 : 1;
+      const axis = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (!axis) return;
+      event.preventDefault();
+      const distance = Math.max(-280, Math.min(280, axis * scale));
+      spin(wheelMotion, distance, event.timeStamp, 72);
+    }, { passive: false });
+    globe.addEventListener('pointerdown', (event) => {
+      if (mode.value !== 'orb' || event.button !== 0 || gesture) return;
+      cancelAnimationFrame(rotationFrame);
+      gesture = { pointer: event.pointerId, x: event.clientX, time: event.timeStamp, travel: 0 };
+      globe.setPointerCapture(event.pointerId);
+      globe.classList.add('is-dragging');
+    });
+    function moveDrag(event) {
+      if (gesture?.pointer !== event.pointerId) return;
+      const distance = gesture.x - event.clientX;
+      gesture.x = event.clientX;
+      if (!reducedMotion.matches) {
+        orbRotation += distance * Math.PI / Math.max(1, globe.clientWidth);
+        drawOrb();
+      }
+      spin(gesture, distance, event.timeStamp, 44);
+    }
+    globe.addEventListener('pointermove', moveDrag);
+    function finishDrag(event) {
+      if (gesture?.pointer !== event.pointerId) return;
+      if (event.type === 'pointerup') moveDrag(event);
+      gesture = null;
+      globe.classList.remove('is-dragging');
+      settledRotation = orbRotation;
+    }
+    globe.addEventListener('pointerup', finishDrag);
+    globe.addEventListener('pointercancel', finishDrag);
+    globe.addEventListener('lostpointercapture', finishDrag);
+    if (document.fullscreenEnabled && root.requestFullscreen) {
+      fullscreen.hidden = false;
+      fullscreen.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement === root) await document.exitFullscreen();
+          else await root.requestFullscreen();
+        } catch {
+          fullscreen.title = 'Use F11 para alternar a tela cheia do navegador';
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        const label = document.fullscreenElement === root ? 'Sair da tela cheia' : 'Tela cheia';
+        fullscreen.setAttribute('aria-label', label);
+        fullscreen.title = label;
+      });
+    }
+    const scrollKeys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
+    for (const area of root.querySelectorAll('.atlas-history, .atlas-transcript')) {
+      let scrollIdle;
+      function recordScrollInput() {
+        clearTimeout(scrollIdle);
+        scrollIdle = setTimeout(() => {
+          scrollIdle = undefined;
+          area.classList.remove('is-scrolling');
+        }, 640);
+      }
+      area.addEventListener('wheel', event => {
+        if (!event.ctrlKey && event.deltaY) recordScrollInput();
+      }, { passive: true });
+      area.addEventListener('touchmove', recordScrollInput, { passive: true });
+      area.addEventListener('keydown', event => {
+        if (scrollKeys.has(event.key)) recordScrollInput();
+      });
+      area.addEventListener('pointerdown', event => {
+        const gutterStart = area.getBoundingClientRect().left + area.clientLeft + area.clientWidth;
+        if (event.button === 1 || (event.button === 0 && event.clientX >= gutterStart)) recordScrollInput();
+      });
+      area.addEventListener('scroll', () => {
+        if (scrollIdle === undefined) return;
+        area.classList.add('is-scrolling');
+        recordScrollInput();
+      });
+    }
+    renderChatMode();
+    drawOrb();
+  })();
+</script>
+</body>
+</html>

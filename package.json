@@ -1,0 +1,12 @@
+{
+  "name": "atlas-interface",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interface local do Atlas para o Codex",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}
